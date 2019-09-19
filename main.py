@@ -50,6 +50,7 @@ PAD_token = 0
 
 if HAS_DATASET == False:
     DATASET_PATH = './sample_dataset'
+    # DATASET_PATH = './whole_dataset'
 
 DATASET_PATH = os.path.join(DATASET_PATH, 'train')
 
@@ -227,6 +228,9 @@ def evaluate(model, dataloader, queue, criterion, device):
     logger.info('evaluate() completed')
     return total_loss / total_num, total_dist / total_length
 
+"""
+Need to be specified
+"""
 def bind_model(model, optimizer=None):
     def load(filename, **kwargs):
         state = torch.load(os.path.join(filename, 'model.pt'))
@@ -284,7 +288,7 @@ def split_dataset(config, wav_paths, script_paths, valid_ratio=0.05):
                                         wav_paths[train_begin_raw_id:train_end_raw_id],
                                         script_paths[train_begin_raw_id:train_end_raw_id],
                                         SOS_token, EOS_token))
-        train_begin = train_end 
+        train_begin = train_end
 
     valid_dataset = BaseDataset(wav_paths[train_end_raw_id:], script_paths[train_end_raw_id:], SOS_token, EOS_token)
 
@@ -330,8 +334,8 @@ def main():
     args.cuda = not args.no_cuda and torch.cuda.is_available()
     device = torch.device('cuda' if args.cuda else 'cpu')
 
-    # N_FFT: defined in loader.py
-    feature_size = N_FFT / 2 + 1
+    # N_FFT: defined in loader.py ; N_FFT = size of the Fourier Transform
+    feature_size = N_FFT / 2 + 1 # N_FFT size = 512
 
     enc = EncoderRNN(feature_size, args.hidden_size,
                      input_dropout_p=args.dropout, dropout_p=args.dropout,
@@ -345,9 +349,11 @@ def main():
     model = Seq2seq(enc, dec)
     model.flatten_parameters()
 
+    # initial distribution of model weights
     for param in model.parameters():
         param.data.uniform_(-0.08, 0.08)
 
+    # make tensors able to be computed on multiple devices in parallel and copy tensors to GPU
     model = nn.DataParallel(model).to(device)
 
     optimizer = optim.Adam(model.module.parameters(), lr=args.lr)
@@ -380,6 +386,7 @@ def main():
     target_path = os.path.join(DATASET_PATH, 'train_label')
     load_targets(target_path)
 
+    # val ratio can be adjusted -> 10% ??
     train_batch_num, train_dataset_list, valid_dataset = split_dataset(args, wav_paths, script_paths, valid_ratio=0.05)
 
     logger.info('start')
@@ -390,20 +397,25 @@ def main():
 
         train_queue = queue.Queue(args.workers * 2)
 
+        # load train data
         train_loader = MultiLoader(train_dataset_list, train_queue, args.batch_size, args.workers)
         train_loader.start()
 
+        # train epoch
         train_loss, train_cer = train(model, train_batch_num, train_queue, criterion, optimizer, device, train_begin, args.workers, 10, args.teacher_forcing)
         logger.info('Epoch %d (Training) Loss %0.4f CER %0.4f' % (epoch, train_loss, train_cer))
+        print('Epoch %d (Training) Loss %0.4f CER %0.4f' % (epoch, train_loss, train_cer))
 
         train_loader.join()
 
+        # eval for each epoch
         valid_queue = queue.Queue(args.workers * 2)
         valid_loader = BaseDataLoader(valid_dataset, valid_queue, args.batch_size, 0)
         valid_loader.start()
 
         eval_loss, eval_cer = evaluate(model, valid_loader, valid_queue, criterion, device)
         logger.info('Epoch %d (Evaluate) Loss %0.4f CER %0.4f' % (epoch, eval_loss, eval_cer))
+        print('Epoch %d (Evaluate) Loss %0.4f CER %0.4f' % (epoch, eval_loss, eval_cer))
 
         valid_loader.join()
 

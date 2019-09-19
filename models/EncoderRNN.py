@@ -20,6 +20,8 @@ import sys
 import math
 import torch.nn as nn
 
+import pdb
+
 from .baseRNN import BaseRNN
 
 class EncoderRNN(BaseRNN):
@@ -100,12 +102,14 @@ class EncoderRNN(BaseRNN):
             - **output** (batch, seq_len, hidden_size): variable containing the encoded features of the input sequence
             - **hidden** (num_layers * num_directions, batch, hidden_size): variable containing the features in the hidden state h
         """
-        
+
         input_var = input_var.unsqueeze(1)
         x = self.conv(input_var)
+        # print(x.shape)
 
+        # pdb.set_trace()
         # BxCxTxD => BxCxDxT
-        x = x.transpose(1, 2)
+        x = x.transpose(1, 2) # B = 4, C = 32, T = var, D = 129
         x = x.contiguous()
         sizes = x.size()
         x = x.view(sizes[0], sizes[1], sizes[2] * sizes[3])

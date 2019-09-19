@@ -1,0 +1,10 @@
+# git ignore files
+*.pyc
+log/*
+
+# don't care files
+*.pyc
+
+
+# data files
+whole_dataset/*
