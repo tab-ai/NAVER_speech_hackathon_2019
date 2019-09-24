@@ -1,10 +1,12 @@
 # git ignore files
 *.pyc
+__pycache__/*
+models/__pycache__/*
 log/*
 
 # don't care files
-*.pyc
 
 
 # data files
 whole_dataset/*
+manipulated_dataset/
