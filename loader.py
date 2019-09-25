@@ -31,8 +31,8 @@ from torch.utils.data import Dataset, DataLoader
 import datetime
 logger = logging.getLogger('root')
 FORMAT = "[%(asctime)s %(filename)s:%(lineno)s - %(funcName)s()] %(message)s"
-logging.basicConfig(filename='log/training_log' + str(datetime.datetime.now()), level=logging.INFO, format='%(message)s')
-# logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=FORMAT)
+#logging.basicConfig(filename='log/training_log' + str(datetime.datetime.now()), level=logging.INFO, format='%(message)s')
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format=FORMAT)
 logger.setLevel(logging.INFO)
 
 PAD = 0

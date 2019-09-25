@@ -42,6 +42,8 @@ from models import EncoderRNN, DecoderRNN, Seq2seq
 import nsml
 from nsml import GPU_NUM, DATASET_PATH, DATASET_NAME, HAS_DATASET
 
+import feature_ex
+
 char2index = dict()
 index2char = dict()
 SOS_token = 0
@@ -49,9 +51,10 @@ EOS_token = 0
 PAD_token = 0
 
 if HAS_DATASET == False:
-    DATASET_PATH = './sample_dataset'
-    # DATASET_PATH = './whole_dataset'
-
+    #DATASET_PATH = './sample_dataset'
+    DATASET_PATH = '../hack_test/whole_dataset'
+    #DATASET_PATH = '/home/tiwlsdi0306/hack_test/data/'
+    
 DATASET_PATH = os.path.join(DATASET_PATH, 'train')
 
 def label_to_string(labels):
@@ -250,7 +253,8 @@ def bind_model(model, optimizer=None):
         model.eval()
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-        input = get_spectrogram_feature(wav_path).unsqueeze(0)
+        #input = get_spectrogram_feature(wav_path).unsqueeze(0)
+        input = get_mel_feature_from_librosa(wav_path, args.feature).unsqueeze(0)
         input = input.to(device)
 
         logit = model(input_variable=input, input_lengths=None, teacher_forcing_ratio=0)
@@ -319,6 +323,8 @@ def main():
     parser.add_argument('--save_name', type=str, default='model', help='the name of model in nsml or local')
     parser.add_argument('--mode', type=str, default='train')
     parser.add_argument("--pause", type=int, default=0)
+    
+    parser.add_argument('--feature', type=str, default='mel', help='select feature extraction function. mel or log_mel ')
 
     args = parser.parse_args()
 
