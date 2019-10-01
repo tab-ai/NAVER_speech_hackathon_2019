@@ -1,12 +1,9 @@
 """
 Copyright 2019-present NAVER Corp.
-
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
      http://www.apache.org/licenses/LICENSE-2.0
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,7 +30,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torch.optim as optim
-import Levenshtein as Lev 
+import Levenshtein as Lev
 
 import label_loader
 from loader import *
@@ -54,7 +51,7 @@ if HAS_DATASET == False:
     #DATASET_PATH = './sample_dataset'
     DATASET_PATH = '../hack_test/whole_dataset'
     #DATASET_PATH = '/home/tiwlsdi0306/hack_test/data/'
-    
+
 DATASET_PATH = os.path.join(DATASET_PATH, 'train')
 
 def label_to_string(labels):
@@ -79,13 +76,13 @@ def label_to_string(labels):
         return sents
 
 def char_distance(ref, hyp):
-    ref = ref.replace(' ', '') 
-    hyp = hyp.replace(' ', '') 
+    ref = ref.replace(' ', '')
+    hyp = hyp.replace(' ', '')
 
     dist = Lev.distance(hyp, ref)
     length = len(ref.replace(' ', ''))
 
-    return dist, length 
+    return dist, length
 
 def get_distance(ref_labels, hyp_labels, display=False):
     total_dist = 0
@@ -95,7 +92,7 @@ def get_distance(ref_labels, hyp_labels, display=False):
         hyp = label_to_string(hyp_labels[i])
         dist, length = char_distance(ref, hyp)
         total_dist += dist
-        total_length += length 
+        total_length += length
         if display:
             cer = total_dist / total_length
             logger.debug('%d (%0.4f)\n(%s)\n(%s)' % (i, cer, ref, hyp))
@@ -323,7 +320,7 @@ def main():
     parser.add_argument('--save_name', type=str, default='model', help='the name of model in nsml or local')
     parser.add_argument('--mode', type=str, default='train')
     parser.add_argument("--pause", type=int, default=0)
-    
+
     parser.add_argument('--feature', type=str, default='mel', help='select feature extraction function. mel or log_mel ')
 
     args = parser.parse_args()
